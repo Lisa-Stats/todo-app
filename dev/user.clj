@@ -1,9 +1,9 @@
 (ns user
   (:require [integrant.repl :as ig-repl]
-            [todo-app.server :as td-server]))
+            [todo-app.main :as td-main]))
 
 (ig-repl/set-prep! (fn []
-                     td-server/config))
+                     td-main/config))
 
 (def go ig-repl/go)
 (def halt ig-repl/halt)
