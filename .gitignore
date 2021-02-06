@@ -2,3 +2,4 @@
 .cpcache/
 /resources/config.edn
 .env
+api.rest
