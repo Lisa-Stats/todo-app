@@ -11,7 +11,7 @@ create table users (
    username text unique not null,
    password text not null,
    email text unique not null,
-   created_on timestamp not null,
+   created_on timestamp not null default current_timestamp,
    last_login timestamp
 );
 
