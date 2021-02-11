@@ -1,6 +1,7 @@
 (ns todo-app.interceptors
   (:require [clojure.java.io :as io]
             [integrant.core :as ig]
+            [io.pedestal.http :as http]
             [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]))
 
@@ -41,3 +42,33 @@
        (sql/insert! db-url :users new-user)
        (assoc context
               :response (created new-user))))})
+
+(defn find-list-by-name
+  [list-id]
+  (sql/find-by-keys db-url list-id :all))
+
+(def find-all-users
+  {:name ::find-all-users
+   :enter
+   (fn [context]
+     (if-let [list-id (-> context :request :path-params :list-id)]
+       (if-let [the-list (find-list-by-name list-id)]
+         (assoc context :response (ok the-list))
+         context)
+       context))})
+
+(defn find-user-by-id
+  [list-id user-id]
+  (sql/find-by-keys db-url list-id {:user_id user-id}))
+
+(def find-user
+  {:name ::find-user
+   :enter
+   (fn [context]
+     (if-let [list-id (-> context :request :path-params :list-id)]
+       (if-let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))]
+         (if-let [item (find-user-by-id list-id user-id)]
+           (assoc context :response (ok item))
+           context)
+         context)
+       context))})

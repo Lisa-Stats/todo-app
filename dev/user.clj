@@ -14,8 +14,11 @@
 (def reset-all ig-repl/reset-all)
 
 (comment
-  (jdbc/execute! int/db-url ["SELECT * FROM users"])
+  (jdbc/execute! int/db-url ["SELECT * FROM users WHERE user_id = ?::uuid" "bb360dbf-82e5-4b75-b456-02959800da3d"])
 
-  (sql/find-by-keys int/db-url :users :all)
+  (sql/get-by-id int/db-url :users #uuid "bb360dbf-82e5-4b75-b456-02959800da3d" :user_id {})
 
-  )
+  (sql/query int/db-url ["SELECT * FROM users WHERE user_id = ?::uuid" "bb360dbf-82e5-4b75-b456-02959800da3d"])
+
+
+ )
