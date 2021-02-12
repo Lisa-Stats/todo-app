@@ -25,6 +25,8 @@
 (def ok       (partial response 200))
 (def created  (partial response 201))
 (def accepted (partial response 202))
+(def deleted  (partial response 204))
+(def rejected (partial response 400))
 
 (defn make-user [username pw email]
   {:username username
@@ -42,6 +44,27 @@
        (sql/insert! db-url :users new-user)
        (assoc context
               :response (created new-user))))})
+
+(def delete-user
+  {:name ::delete-user
+   :enter
+   (fn [context]
+     (let [list-id  (-> context :request :path-params :list-id)
+           user-id  (java.util.UUID/fromString (-> context :request :path-params :user-id))]
+       (sql/delete! db-url list-id {:user_id user-id})
+       (assoc context
+              :response (deleted delete-user))))})
+
+(def update-user
+  {:name ::update-user
+   :enter
+   (fn [context]
+     (let [list-id  (-> context :request :path-params :list-id)
+           user-id  (java.util.UUID/fromString (-> context :request :path-params :user-id))
+           json-params (-> context :request :json-params)]
+       (sql/update! db-url list-id json-params {:user_id user-id})
+       (assoc context
+              :response (ok update-user))))})
 
 (defn find-list-by-name
   [list-id]
@@ -70,5 +93,19 @@
          (if-let [item (find-user-by-id list-id user-id)]
            (assoc context :response (ok item))
            context)
+         context)
+       context))})
+
+(defn find-user-todos
+  [user-id]
+  (sql/find-by-keys db-url :todo {:user_id user-id}))
+
+(def find-all-todos
+  {:name ::find-all-todos
+   :enter
+   (fn [context]
+     (if-let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))]
+       (if-let [todos (find-user-todos user-id)]
+         (assoc context :response (ok todos))
          context)
        context))})
