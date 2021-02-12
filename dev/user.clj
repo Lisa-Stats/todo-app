@@ -14,11 +14,11 @@
 (def reset-all ig-repl/reset-all)
 
 (comment
-  (jdbc/execute! int/db-url ["SELECT * FROM users WHERE user_id = ?::uuid" "bb360dbf-82e5-4b75-b456-02959800da3d"])
+    (sql/delete! int/db-url :users {:user_id #uuid "51445ecd-579d-4dbe-b7e3-d7ce9e61fd32"})
 
-  (sql/get-by-id int/db-url :users #uuid "bb360dbf-82e5-4b75-b456-02959800da3d" :user_id {})
+  (sql/find-by-keys int/db-url :todo {:user_id #uuid "06512da8-43e0-489f-8ed9-9204ddc0a6b5"
+                                      :todo_id #uuid  "6553a9e8-98eb-4986-92ea-69b4d5bc0899"})
 
-  (sql/query int/db-url ["SELECT * FROM users WHERE user_id = ?::uuid" "bb360dbf-82e5-4b75-b456-02959800da3d"])
-
+  (sql/update! int/db-url :users {:email "jenna@mail.com"} {:user_id #uuid "2923f1f0-c25b-46e4-a3a4-5771e41863ab"})
 
  )
