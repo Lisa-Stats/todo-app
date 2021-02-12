@@ -14,17 +14,25 @@
 
 (def app-routes
   (route/expand-routes
-   #{["/"                  :get   [int/db-interceptor
-                                   (body-params/body-params)
-                                   http/json-body
-                                   respond-hello]]
-     ["/:list-id"          :post  [int/db-interceptor
-                                   (body-params/body-params)
-                                   http/json-body
-                                   int/insert-user]]
-     ["/:list-id"          :get   [int/db-interceptor
-                                   params/keywordize-request-params
-                                   int/find-all-users]]
-     ["/:list-id/:user-id" :get   [int/db-interceptor
-                                   params/keywordize-request-params
-                                   int/find-user]]}))
+   #{["/"                       :get    [int/db-interceptor
+                                         (body-params/body-params)
+                                         http/json-body
+                                         respond-hello]]
+     ["/:list-id"               :post   [int/db-interceptor
+                                         (body-params/body-params)
+                                         http/json-body
+                                         int/insert-user]]
+     ["/:list-id"               :get    [int/db-interceptor
+                                         params/keywordize-request-params
+                                         int/find-all-users]]
+     ["/:list-id/:user-id"      :get    [int/db-interceptor
+                                         params/keywordize-request-params
+                                         int/find-user]]
+     ["/:list-id/:user-id"      :put    [int/db-interceptor
+                                         (body-params/body-params)
+                                         http/json-body
+                                         int/update-user]]
+     ["/:list-id/:user-id"      :delete [int/db-interceptor
+                                         int/delete-user]]
+     ["/todo/:user-id"          :get    [int/db-interceptor
+                                         int/find-all-todos]]}))
