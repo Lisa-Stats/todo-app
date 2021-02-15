@@ -32,5 +32,11 @@
                                          int/update-user]]
      ["/users/:user-id"         :delete [int/db-interceptor
                                          int/delete-user]]
+     ["/todo/:user-id"          :post   [int/db-interceptor
+                                         (body-params/body-params)
+                                         http/json-body
+                                         int/insert-todo]]
      ["/todo/:user-id"          :get    [int/db-interceptor
-                                         int/find-all-todos]]}))
+                                         int/find-all-todos]]
+     ["/todo/:user-id/:todo-id" :delete [int/db-interceptor
+                                         int/delete-todo]]}))
