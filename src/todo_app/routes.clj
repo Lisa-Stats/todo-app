@@ -38,5 +38,11 @@
                                          int/insert-todo]]
      ["/todo/:user-id"          :get    [int/db-interceptor
                                          int/find-all-todos]]
+     ["/todo/:user-id/:todo-id" :get    [int/db-interceptor
+                                         int/find-todo-by-id]]
+     ["/todo/:user-id/:todo-id" :put    [int/db-interceptor
+                                         (body-params/body-params)
+                                         http/json-body
+                                         int/update-todo]]
      ["/todo/:user-id/:todo-id" :delete [int/db-interceptor
                                          int/delete-todo]]}))

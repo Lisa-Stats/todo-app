@@ -63,8 +63,8 @@
            json-params (-> context :request :json-params)
            {:next.jdbc/keys [update-count]} (sql/update! db-url :users json-params {:user_id user-id})]
        (if (= 1 update-count)
-         (assoc context :response (ok update-user))
-         (assoc context :response (rejected update-user)))))})
+         (assoc context :response (ok json-params))
+         (assoc context :response (rejected json-params)))))})
 
 (def find-all-users
   {:name ::find-all-users
@@ -82,11 +82,9 @@
   {:name ::find-user
    :enter
    (fn [context]
-     (if-let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))]
-       (if-let [item (find-user-by-id user-id)]
-         (assoc context :response (ok item))
-         context)
-       context))})
+     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
+           item (find-user-by-id user-id)]
+       (assoc context :response (ok item))))})
 
 (defn insert-todo!
   [todo-name todo-body user-id]
@@ -117,6 +115,19 @@
          (assoc context :response (deleted delete-user))
          (assoc context :response (rejected delete-user)))))})
 
+(def update-todo
+  {:name ::update-todo
+   :enter
+   (fn [context]
+     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
+           todo-id (java.util.UUID/fromString (-> context :request :path-params :todo-id))
+           json-params (-> context :request :json-params)
+           {:next.jdbc/keys [update-count]} (sql/update! db-url :todo json-params {:user_id user-id
+       :todo_id todo-id})]
+       (if (= 1 update-count)
+         (assoc context :response (ok json-params))
+         (assoc context :response (rejected json-params)))))})
+
 (defn find-user-todos
   [user-id]
   (sql/find-by-keys db-url :todo {:user_id user-id}))
@@ -125,8 +136,22 @@
   {:name ::find-all-todos
    :enter
    (fn [context]
-     (if-let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))]
-       (if-let [todos (find-user-todos user-id)]
-         (assoc context :response (ok todos))
-         context)
-       context))})
+     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
+           todos (find-user-todos user-id)]
+       (assoc context :response (ok todos))))})
+
+(defn find-todo
+  [user-id todo-id]
+  {:user_id user-id
+   :todo_id todo-id})
+
+(def find-todo-by-id
+  {:name ::find-todo-by-id
+   :enter
+   (fn [context]
+     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
+           todo-id (java.util.UUID/fromString (-> context :request :path-params :todo-id))
+           find-todo-data (find-todo user-id todo-id)
+           get-todo (sql/find-by-keys db-url :todo find-todo-data)]
+       (assoc context
+              :response (ok get-todo))))})
