@@ -1,7 +1,6 @@
 (ns todo-app.interceptors
   (:require [clojure.java.io :as io]
             [integrant.core :as ig]
-            [io.pedestal.http :as http]
             [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]))
 
@@ -19,14 +18,29 @@
             (let [db-conn (jdbc/with-options db-url {})]
               (assoc context :db-conn db-conn)))})
 
-(defn response [status body]
-  {:status status :body body})
+(defn ok-response
+  [context body]
+  (assoc context :response {:status 200
+                            :body body}))
 
-(def ok       (partial response 200))
-(def created  (partial response 201))
-(def accepted (partial response 202))
-(def deleted  (partial response 204))
-(def rejected (partial response 400))
+(defn created-response
+  [context body]
+  (assoc context :response {:status 201
+                            :body body}))
+
+(defn deleted-response
+  [context body]
+  (assoc context :response {:status 204
+                            :body body}))
+
+(defn rejected-response
+  [context body]
+  (assoc context :response {:status 400
+                            :body body}))
+
+(defn get-id-by-type
+  [context type]
+  (java.util.UUID/fromString (-> context :request :path-params type)))
 
 (defn make-user [username pw email]
   {:username username
@@ -42,37 +56,35 @@
            email    (-> context :request :json-params :email)
            new-user (make-user username pw email)]
        (sql/insert! db-url :users new-user)
-       (assoc context
-              :response (created new-user))))})
+       (created-response context new-user)))})
 
 (def delete-user
   {:name ::delete-user
    :enter
    (fn [context]
-     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
+     (let [user-id (get-id-by-type context :user-id)
            {:next.jdbc/keys [update-count]} (sql/delete! db-url :users {:user_id user-id})]
        (if (= 1 update-count)
-         (assoc context :response (deleted delete-user))
-         (assoc context :response (rejected delete-user)))))})
+         (deleted-response context delete-user)
+         (rejected-response context delete-user))))})
 
 (def update-user
   {:name ::update-user
    :enter
    (fn [context]
-     (let [user-id  (java.util.UUID/fromString (-> context :request :path-params :user-id))
+     (let [user-id (get-id-by-type context :user-id)
            json-params (-> context :request :json-params)
            {:next.jdbc/keys [update-count]} (sql/update! db-url :users json-params {:user_id user-id})]
        (if (= 1 update-count)
-         (assoc context :response (ok json-params))
-         (assoc context :response (rejected json-params)))))})
+         (ok-response context json-params)
+         (rejected-response context json-params))))})
 
 (def find-all-users
   {:name ::find-all-users
    :enter
    (fn [context]
      (let [user-return (sql/find-by-keys db-url :users :all)]
-       (sql/find-by-keys db-url :users :all)
-       (assoc context :response (ok user-return))))})
+       (ok-response context user-return)))})
 
 (defn find-user-by-id
   [user-id]
@@ -82,9 +94,9 @@
   {:name ::find-user
    :enter
    (fn [context]
-     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
+     (let [user-id (get-id-by-type context :user-id)
            item (find-user-by-id user-id)]
-       (assoc context :response (ok item))))})
+       (ok-response context item)))})
 
 (defn insert-todo!
   [todo-name todo-body user-id]
@@ -98,35 +110,35 @@
    (fn [context]
      (let [todo-name (-> context :request :json-params :todo-name)
            todo-body (-> context :request :json-params :todo-body)
-           user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
-           new-todo (insert-todo! todo-name todo-body user-id)]
+           user-id   (get-id-by-type context :user-id)
+           new-todo  (insert-todo! todo-name todo-body user-id)]
        (sql/insert! db-url :todo new-todo)
-       (assoc context :response (created new-todo))))})
+       (created-response context new-todo)))})
 
 (def delete-todo
   {:name ::delete-todo
    :enter
    (fn [context]
-     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
-           todo-id (java.util.UUID/fromString (-> context :request :path-params :todo-id))
+     (let [user-id (get-id-by-type context :user-id)
+           todo-id (get-id-by-type context :todo-id)
            {:next.jdbc/keys [update-count]} (sql/delete! db-url :todo {:user_id user-id
                                                                        :todo_id todo-id})]
        (if (= 1 update-count)
-         (assoc context :response (deleted delete-user))
-         (assoc context :response (rejected delete-user)))))})
+         (deleted-response context delete-user)
+         (rejected-response context delete-user))))})
 
 (def update-todo
   {:name ::update-todo
    :enter
    (fn [context]
-     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
-           todo-id (java.util.UUID/fromString (-> context :request :path-params :todo-id))
+     (let [user-id (get-id-by-type context :user-id)
+           todo-id (get-id-by-type context :todo-id)
            json-params (-> context :request :json-params)
            {:next.jdbc/keys [update-count]} (sql/update! db-url :todo json-params {:user_id user-id
        :todo_id todo-id})]
        (if (= 1 update-count)
-         (assoc context :response (ok json-params))
-         (assoc context :response (rejected json-params)))))})
+         (ok-response context json-params)
+         (rejected-response context json-params))))})
 
 (defn find-user-todos
   [user-id]
@@ -136,9 +148,9 @@
   {:name ::find-all-todos
    :enter
    (fn [context]
-     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
+     (let [user-id (get-id-by-type context :user-id)
            todos (find-user-todos user-id)]
-       (assoc context :response (ok todos))))})
+       (ok-response context todos)))})
 
 (defn find-todo
   [user-id todo-id]
@@ -149,9 +161,8 @@
   {:name ::find-todo-by-id
    :enter
    (fn [context]
-     (let [user-id (java.util.UUID/fromString (-> context :request :path-params :user-id))
-           todo-id (java.util.UUID/fromString (-> context :request :path-params :todo-id))
+     (let [user-id (get-id-by-type context :user-id)
+           todo-id (get-id-by-type context :todo-id)
            find-todo-data (find-todo user-id todo-id)
            get-todo (sql/find-by-keys db-url :todo find-todo-data)]
-       (assoc context
-              :response (ok get-todo))))})
+       (ok-response context get-todo)))})
