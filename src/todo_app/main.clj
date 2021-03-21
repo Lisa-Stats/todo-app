@@ -20,7 +20,8 @@
   (let [service-map {::http/join? false
                      ::http/port port
                      ::http/routes routes/app-routes
-                     ::http/type :jetty}]
+                     ::http/type :jetty
+                     ::http/allowed-origins {:creds true :allowed-origins (constantly true)}}]
     {:server (-> service-map
                  http/create-server
                  http/start)}))
