@@ -99,8 +99,9 @@
        (ok-response context item)))})
 
 (defn insert-todo!
-  [todo-name todo-body user-id]
-  {:todo_name todo-name
+  [todo-category todo-name todo-body user-id]
+  {:todo_category todo-category
+   :todo_name todo-name
    :todo_body todo-body
    :user_id user-id})
 
@@ -108,11 +109,12 @@
   {:name ::insert-todo
    :enter
    (fn [context]
-     (let [todo-name (-> context :request :json-params :todo-name)
-           todo-body (-> context :request :json-params :todo-body)
-           user-id   (get-id-by-type context :user-id)
-           new-todo  (insert-todo! todo-name todo-body user-id)]
-       (sql/insert! db-url :todo new-todo)
+     (let [todo-category (-> context :request :json-params :todo-category)
+           todo-name     (-> context :request :json-params :todo-name)
+           todo-body     (-> context :request :json-params :todo-body)
+           user-id       (get-id-by-type context :user-id)
+           new-todo*     (insert-todo! todo-category todo-name todo-body user-id)
+           new-todo      (sql/insert! db-url :todo new-todo*)]
        (created-response context new-todo)))})
 
 (def delete-todo
