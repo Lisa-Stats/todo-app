@@ -2,7 +2,8 @@
          "resources"]
 
  :deps
- {io.pedestal/pedestal.service        {:mvn/version "0.5.8"}
+ {integrant/integrant                 {:mvn/version "0.8.0"}
+  io.pedestal/pedestal.service        {:mvn/version "0.5.8"}
   io.pedestal/pedestal.route          {:mvn/version "0.5.8"}
   io.pedestal/pedestal.jetty          {:mvn/version "0.5.8"}
   org.clojure/clojure                 {:mvn/version "1.10.1"}
@@ -19,4 +20,6 @@
    {cider/cider-nrepl {:mvn/version "0.25.4"}
     integrant/repl    {:mvn/version "0.3.2"}}
    :extra-paths ["dev"]
-   :main-opts ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}}}
+   :main-opts ["-m" "nrepl.cmdline" "--middleware" "[cider.nrepl/cider-middleware]"]}
+  :prod
+   {:main-opts ["-m" "todo-app.main"]}}}
