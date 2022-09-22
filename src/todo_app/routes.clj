@@ -1,16 +1,14 @@
 (ns todo-app.routes
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.body-params :as body-params]
-            [io.pedestal.http.params :as params]
             [io.pedestal.http.route :as route]
             [todo-app.interceptors :as int]))
 
 (def respond-hello
   {:name ::respond-hello
    :enter (fn [context]
-            (let [json-params (-> context :request :json-params)]
-              (assoc context :response {:body json-params
-                                        :status 200})))})
+            (assoc context :response {:body "Hello, world!"
+                                      :status 200}))})
 
 (def app-routes
   (route/expand-routes

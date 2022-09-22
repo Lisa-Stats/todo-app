@@ -1,6 +1,5 @@
 (ns user
   (:require [integrant.repl :as ig-repl]
-            [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]
             [todo-app.interceptors :as int]
             [todo-app.main :as td-main]))
